@@ -1,6 +1,3 @@
-use std::io::Read;
-
-use atty::Stream;
 use chrono::prelude::*;
 use gumdrop::Options;
 
@@ -49,28 +46,19 @@ where
 fn main() {
     let args = Args::parse_args_default_or_exit();
 
-    if atty::is(Stream::Stdin) {
+    let mut buf = String::new();
+    let stdin = std::io::stdin();
+    while let Ok(n) = stdin.read_line(&mut buf) {
+        if n == 0 {
+            break;
+        }
+
         if args.local {
             run(&args, Local::now());
         } else {
             run(&args, Utc::now());
         }
-        println!();
-    } else {
-        let mut buf = String::new();
-        let stdin = std::io::stdin();
-        while let Ok(n) = stdin.read_line(&mut buf) {
-            if n == 0 {
-                break;
-            }
-
-            if args.local {
-                run(&args, Local::now());
-            } else {
-                run(&args, Utc::now());
-            }
-            print!(": {}", buf);
-            buf.clear();
-        }
+        print!(": {}", buf);
+        buf.clear();
     }
 }
